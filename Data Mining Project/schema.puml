@@ -1,0 +1,38 @@
+@startuml schema
+
+class Account {
+    account_id
+    district_id
+}
+
+class Client {
+
+}
+
+class CreditCard {
+    disp_id
+}
+
+class PermanentOrder  {
+    account_id
+}
+
+class Disposition {
+    disp_id
+    client_id
+    account_id
+}
+
+
+Account -- PermanentOrder
+Account -- Loan
+Account -- Transactions
+Account -- "1" Demograph
+
+Disposition "1..*" -- "1" Account
+Disposition "1" -- "0..1" CreditCard
+Disposition "1" -- "1" Client
+
+Client -- "1" Demograph 
+
+@enduml
