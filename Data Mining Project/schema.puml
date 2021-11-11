@@ -1,38 +1,54 @@
 @startuml schema
 
 class Account {
-    account_id
-    district_id
+    frequency
 }
 
 class Client {
-
-}
+    birth_number
+}   
 
 class CreditCard {
-    disp_id
-}
-
-class PermanentOrder  {
-    account_id
+    type
+    issued
 }
 
 class Disposition {
-    disp_id
-    client_id
-    account_id
+    type
 }
 
+class Loan {
+    date
+    amount
+    duration
+    payments
+    status
+}
+
+class PermanentOrder  {
+}
+
+class Transaction {
+    type
+    operation
+    amount
+    balance
+    k_symbol
+    bank
+    account
+}
 
 Account -- PermanentOrder
-Account -- Loan
-Account -- Transactions
-Account -- "1" Demograph
+Account "*" -- "1" Demograph
+Account "1" -- "*" Transaction
+Account "1" -- "1" Loan
 
 Disposition "1..*" -- "1" Account
 Disposition "1" -- "0..1" CreditCard
+'Justification: 1- A disposition is the connection between a client and account, so it makes sense. There are as many total dispositions as clients, both in 
 Disposition "1" -- "1" Client
 
-Client -- "1" Demograph 
+'A client has a demograph id (district_id) inside each entry. Additionally, we looked at our training data and no client has multiple dispositions associated.
+Client "*" -- "1" Demograph 
 
 @enduml
