@@ -38,14 +38,14 @@ def get_X_y(dataset, columns_to_drop, target_column, scaler=None):
     return X, y
 
 
-def tune_model(dataset, model_instance, parameter_grid,  target_column, cross_validation=StratifiedKFold(n_splits=10), scaler=None):
+def tune_model(dataset, model_instance, parameter_grid, columns_to_drop, target_column, cross_validation=StratifiedKFold(n_splits=10), scaler=None):
     X, y = get_X_y(dataset, columns_to_drop, target_column, scaler)
 
     grid_search = GridSearchCV(
         model_instance,
         param_grid=parameter_grid,
         cv=cross_validation,
-        scoring="roc_auc"
+        scoring="f1"
     )
 
     grid_search.fit(X, y)
