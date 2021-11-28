@@ -45,7 +45,7 @@ def tune_model(dataset, model_instance, parameter_grid, columns_to_drop, target_
         model_instance,
         param_grid=parameter_grid,
         cv=cross_validation,
-        scoring="f1"
+        scoring="roc_auc"
     )
 
     grid_search.fit(X, y)
