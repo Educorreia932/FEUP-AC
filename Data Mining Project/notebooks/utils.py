@@ -9,7 +9,9 @@ from dateutil.relativedelta import relativedelta
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedKFold
+
 from imblearn.pipeline import Pipeline
+from imblearn.over_sampling import SMOTE
 
 
 def read_to_df(filename):
@@ -40,9 +42,23 @@ def get_X_y(dataset, columns_to_drop, target_column, scaler=None):
     return X, y
 
 
-def tune_model(dataset, model_instance, parameter_grid, columns_to_drop, target_column, cross_validation=StratifiedKFold(n_splits=10), scaler=None):
+def tune_model(dataset, model_instance, parameter_grid, columns_to_drop, target_column, cross_validation=StratifiedKFold(n_splits=10), scaler=None, oversample=False):
     X, y = get_X_y(dataset, columns_to_drop, target_column, scaler)
 
+    if oversample:
+        steps = [('sampling', SMOTE()), ('model', model_instance)]
+
+        instance_parameter_grid = {}
+
+        for parameter_name, parameter_values in parameter_grid.items():
+            key = f"model__{parameter_name}"
+            instance_parameter_grid[key] = parameter_values
+
+        parameter_grid = instance_parameter_grid
+        print(parameter_grid)
+
+        model_instance = Pipeline(steps=steps)
+        
     grid_search = GridSearchCV(
         model_instance,
         param_grid=parameter_grid,
@@ -51,6 +67,7 @@ def tune_model(dataset, model_instance, parameter_grid, columns_to_drop, target_
     )
 
     grid_search.fit(X, y)
+
     print('Best score: {}'.format(grid_search.best_score_))
     print('Best parameters: {}'.format(grid_search.best_params_))
 
