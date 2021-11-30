@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedKFold
+from sklearn.feature_selection import RFE
 
 from imblearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
@@ -42,28 +43,45 @@ def get_X_y(dataset, columns_to_drop, target_column, scaler=None):
     return X, y
 
 
-def tune_model(dataset, model_instance, parameter_grid, columns_to_drop, target_column, cross_validation=StratifiedKFold(n_splits=10), scaler=None, oversample=False):
+def tune_model(
+    dataset,
+    model_instance,
+    parameter_grid,
+    columns_to_drop,
+    target_column,
+    cross_validation=StratifiedKFold(n_splits=10),
+    scaler=None,
+    oversample=False,
+    feature_selection=False
+):
     X, y = get_X_y(dataset, columns_to_drop, target_column, scaler)
 
+    instance_parameter_grid = {}
+
+    for parameter_name, parameter_values in parameter_grid.items():
+        key = f"model__{parameter_name}"
+        instance_parameter_grid[key] = parameter_values
+
+    parameter_grid = instance_parameter_grid
+
+    steps = []
+
+    if feature_selection:
+        rfe = RFE(model_instance)
+        steps.append(('feature_selection', rfe))
+
     if oversample:
-        steps = [('sampling', SMOTE()), ('model', model_instance)]
+        steps.append(('sampling', SMOTE()))
 
-        instance_parameter_grid = {}
+    steps.append((("model"), model_instance))
 
-        for parameter_name, parameter_values in parameter_grid.items():
-            key = f"model__{parameter_name}"
-            instance_parameter_grid[key] = parameter_values
+    estimator = Pipeline(steps=steps)
 
-        parameter_grid = instance_parameter_grid
-        print(parameter_grid)
-
-        model_instance = Pipeline(steps=steps)
-        
     grid_search = GridSearchCV(
-        model_instance,
+        estimator,
         param_grid=parameter_grid,
         cv=cross_validation,
-        scoring="roc_auc"
+        scoring="roc_auc",
     )
 
     grid_search.fit(X, y)
