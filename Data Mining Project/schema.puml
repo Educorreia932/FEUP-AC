@@ -25,9 +25,6 @@ class Loan {
     status
 }
 
-class PermanentOrder  {
-}
-
 class Transaction {
     type
     operation
@@ -38,7 +35,6 @@ class Transaction {
     account
 }
 
-Account -- PermanentOrder
 Account "*" -- "1" Demograph
 Account "1" -- "*" Transaction
 Account "1" -- "1" Loan

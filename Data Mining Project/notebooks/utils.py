@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedKFold
-from sklearn.feature_selection import RFE
+from sklearn.feature_selection import SelectKBest, f_classif
 
 from imblearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
@@ -51,29 +51,28 @@ def tune_model(
     target_column,
     cross_validation=StratifiedKFold(n_splits=10),
     scaler=None,
-    oversample=False,
-    feature_selection=False
+    feature_selection=False,
+    oversample=False
 ):
     X, y = get_X_y(dataset, columns_to_drop, target_column, scaler)
 
     instance_parameter_grid = {}
 
     for parameter_name, parameter_values in parameter_grid.items():
-        key = f"model__{parameter_name}"
-        instance_parameter_grid[key] = parameter_values
+        instance_parameter_grid[f"model__{parameter_name}"] = parameter_values
 
     parameter_grid = instance_parameter_grid
 
     steps = []
 
     if feature_selection:
-        rfe = RFE(model_instance)
+        rfe = SelectKBest(f_classif, k=10)
         steps.append(('feature_selection', rfe))
 
     if oversample:
-        steps.append(('sampling', SMOTE()))
+        steps.append(('sampling', SMOTE(n_jobs=-1)))
 
-    steps.append((("model"), model_instance))
+    steps.append(("model", model_instance))
 
     estimator = Pipeline(steps=steps)
 
