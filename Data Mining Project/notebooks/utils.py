@@ -14,6 +14,9 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from imblearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 
+from sklearn.metrics import make_scorer
+from sklearn.metrics import accuracy_score, f1_score
+
 
 def read_to_df(filename):
     load_path = pathlib.Path().joinpath("..").joinpath("data").joinpath(filename)
@@ -76,11 +79,16 @@ def tune_model(
 
     estimator = Pipeline(steps=steps)
 
+    # https://scikit-learn.org/stable/auto_examples/model_selection/plot_multi_metric_evaluation.html
+    scoring = {"AUC": "roc_auc", "Accuracy": make_scorer(
+        accuracy_score), "F1": make_scorer(f1_score)}
+
     grid_search = GridSearchCV(
         estimator,
         param_grid=parameter_grid,
         cv=cross_validation,
-        scoring="roc_auc",
+        scoring=scoring,
+        refit="AUC"
     )
 
     grid_search.fit(X, y)
