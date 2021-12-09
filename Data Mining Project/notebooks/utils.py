@@ -19,6 +19,7 @@ from sklearn.metrics import make_scorer
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
+from sklearn.preprocessing import StandardScaler
 
 
 def read_to_df(filename):
@@ -103,6 +104,8 @@ def tune_model(
     return grid_search
 
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
+
+
 def plotROC(grid_search_list,
             dataset,
             columns_to_drop,
@@ -111,7 +114,8 @@ def plotROC(grid_search_list,
 
     X, y = get_X_y(dataset, columns_to_drop, target_column, scaler)
 
-    labels = ["No Feature selection/No oversampling", "Feature Selection", "Oversampling", "Feature Selection/Oversampling"]
+    labels = ["No Feature selection/No oversampling", "Feature Selection",
+              "Oversampling", "Feature Selection/Oversampling"]
 
     tprs = []
     aucs = []
@@ -171,4 +175,22 @@ def plotROC(grid_search_list,
             title=labels[j],
         )
         axj.legend(loc="lower right")
+    plt.show()
+
+
+def plotAlgorithmROC(grid_search_list,
+                     labels,
+                     dataset,
+                     columns_to_drop,
+                     target_column,
+                     scalers):
+    # labels = ["No Feature selection/No oversampling", "Feature Selection",
+    #           "Oversampling", "Feature Selection/Oversampling"]
+
+    fig, axs = plt.subplots(1, figsize=(10, 10))
+    for i in range(len(grid_search_list)):
+        X, y = get_X_y(dataset, columns_to_drop, target_column,
+                       StandardScaler() if scalers[i] else None)
+        RocCurveDisplay.from_estimator(
+            grid_search_list[i].best_estimator_, X, y, name=labels[i], ax=axs)
     plt.show()
