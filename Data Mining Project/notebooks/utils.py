@@ -3,6 +3,7 @@ import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sb
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -19,7 +20,10 @@ from sklearn.metrics import make_scorer
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
+from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
+
+
 
 
 def read_to_df(filename):
@@ -193,4 +197,19 @@ def plotAlgorithmROC(grid_search_list,
                        StandardScaler() if scalers[i] else None)
         RocCurveDisplay.from_estimator(
             grid_search_list[i].best_estimator_, X, y, name=labels[i], ax=axs)
+    plt.show()
+
+
+def confMatrix(models, columns_to_drop, target, X):
+
+    titles = ["No Oversampling/No Feature Selection", "Feature Selection",
+              "Oversampling", "Feature Selection/Oversampling"]
+    fig, axs = plt.subplots(1, 4, figsize=(30, 5))
+
+    for i in range(len(models)):
+        cf_matrix = confusion_matrix(X[target], models[i].predict(X.drop(
+            columns_to_drop, axis=1)), labels=None, sample_weight=None, normalize=None)
+        sb.heatmap(cf_matrix, annot=True, fmt="d", ax=axs[i])
+        axs[i].set_title(titles[i])
+
     plt.show()
