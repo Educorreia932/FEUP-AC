@@ -24,8 +24,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
 
-
-
 def read_to_df(filename):
     load_path = pathlib.Path().joinpath("..").joinpath("data").joinpath(filename)
     return pd.read_csv(load_path, delimiter=";")
@@ -49,7 +47,7 @@ def get_X_y(dataset, columns_to_drop, target_column, scaler=None):
 
     if scaler != None:
         scaler = scaler.fit(X)
-        X = pd.DataFrame(scaler.transform(X))
+        X = pd.DataFrame(scaler.transform(X), index=X.index, columns=X.columns)
 
     return X, y
 
@@ -200,16 +198,20 @@ def plotAlgorithmROC(grid_search_list,
     plt.show()
 
 
-def confMatrix(models, columns_to_drop, target, X):
+def confMatrix(models, columns_to_drop, target, dataset, scaler=None):
 
     titles = ["No Oversampling/No Feature Selection", "Feature Selection",
               "Oversampling", "Feature Selection/Oversampling"]
     fig, axs = plt.subplots(1, 4, figsize=(30, 5))
 
+    X, y = get_X_y(dataset, columns_to_drop, target, scaler)
+
     for i in range(len(models)):
-        cf_matrix = confusion_matrix(X[target], models[i].predict(X.drop(
-            columns_to_drop, axis=1)), labels=None, sample_weight=None, normalize=None)
+        cf_matrix = confusion_matrix(y, models[i].predict(
+            X), labels=None, sample_weight=None, normalize=None)
         sb.heatmap(cf_matrix, annot=True, fmt="d", ax=axs[i])
         axs[i].set_title(titles[i])
+        axs[i].set_xlabel("Predicted")
+        axs[i].set_ylabel("Actual")
 
     plt.show()
