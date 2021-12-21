@@ -23,6 +23,8 @@ from sklearn.metrics import auc
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
+from IPython.display import Markdown, display
+
 
 def read_to_df(filename):
     load_path = pathlib.Path().joinpath("..").joinpath("data").joinpath(filename)
@@ -58,7 +60,6 @@ def tune_model(
     parameter_grid,
     columns_to_drop,
     target_column,
-    # cross_validation=StratifiedKFold(n_splits=10),
     cross_validation=StratifiedKFold(n_splits=5),
     scaler=None,
     feature_selection=False,
@@ -100,8 +101,8 @@ def tune_model(
 
     grid_search.fit(X, y)
 
-    print('Best score: {}'.format(grid_search.best_score_))
-    print('Best parameters: {}'.format(grid_search.best_params_))
+    display(Markdown(f"**Best score:** {grid_search.best_score_}"))
+    display(Markdown(f"**Best parameters:** {grid_search.best_params_}"))
 
     return grid_search
 
@@ -176,39 +177,49 @@ def plotROC(grid_search_list,
             ylim=[-0.05, 1.05],
             title=labels[j],
         )
+        
         axj.legend(loc="lower right")
+
     plt.show()
 
 
-def plotAlgorithmROC(grid_search_list,
-                     labels,
-                     dataset,
-                     columns_to_drop,
-                     target_column,
-                     scalers):
-    # labels = ["No Feature selection/No oversampling", "Feature Selection",
-    #           "Oversampling", "Feature Selection/Oversampling"]
-
+def plotAlgorithmROC(
+    grid_search_list,
+    labels,
+    dataset,
+    columns_to_drop,
+    target_column,
+    scalers
+):
     fig, axs = plt.subplots(1, figsize=(10, 10))
+
     for i in range(len(grid_search_list)):
-        X, y = get_X_y(dataset, columns_to_drop, target_column,
-                       StandardScaler() if scalers[i] else None)
-        RocCurveDisplay.from_estimator(
-            grid_search_list[i].best_estimator_, X, y, name=labels[i], ax=axs)
+        X, y = get_X_y(
+            dataset,
+            columns_to_drop,
+            target_column,
+            StandardScaler() if scalers[i] else None
+        )
+
+        RocCurveDisplay.from_estimator(grid_search_list[i].best_estimator_, X, y, name=labels[i], ax=axs)
+
     plt.show()
 
 
 def confMatrix(models, columns_to_drop, target, dataset, scaler=None):
+    titles = [
+        "No Oversampling/No Feature Selection",
+        "Feature Selection",
+        "Oversampling",
+        "Feature Selection/Oversampling"
+    ]
 
-    titles = ["No Oversampling/No Feature Selection", "Feature Selection",
-              "Oversampling", "Feature Selection/Oversampling"]
     fig, axs = plt.subplots(1, 4, figsize=(30, 5))
 
     X, y = get_X_y(dataset, columns_to_drop, target, scaler)
 
     for i in range(len(models)):
-        cf_matrix = confusion_matrix(y, models[i].predict(
-            X), labels=None, sample_weight=None, normalize=None)
+        cf_matrix = confusion_matrix(y, models[i].predict(X), labels=None, sample_weight=None, normalize=None)
         sb.heatmap(cf_matrix, annot=True, fmt="d", ax=axs[i])
         axs[i].set_title(titles[i])
         axs[i].set_xlabel("Predicted")
