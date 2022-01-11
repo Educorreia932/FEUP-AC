@@ -2,3 +2,9 @@
 
 # Cache
 __pycache__/
+
+*.Rproj
+*.RData
+*.Rhistory
+
+.Rproj*
